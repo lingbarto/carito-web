@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Srta. Carito 💖</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background-color: #000;
+      font-family: 'Courier New', monospace;
+      height: 100%;
+      touch-action: manipulation;
+    }
+
+    #main-text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: #ff66cc;
+      font-size: 36px;
+      text-shadow: 0 0 10px #ff66cc, 0 0 20px #ff99cc, 0 0 30px #ff66aa;
+      z-index: 10;
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 0;
+    }
+
+    #start-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0,0,0,0.85);
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 20px;
+      z-index: 20;
+      text-align: center;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div id="main-text">Srta. Carito 💖</div>
+  <div id="start-overlay">Toca la pantalla para comenzar 💖</div>
+  <canvas id="canvas"></canvas>
+  <audio id="bg-music" loop src="musica.mp3"></audio>
+
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const music = document.getElementById('bg-music');
+    const overlay = document.getElementById('start-overlay');
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    const words = [
+      "Te amo", "I love you", "Je t’aime", "Ich liebe dich", "Ti amo",
+      "愛してる", "사랑해", "Я тебя люблю", "Eu te amo", "Te iubesc", "Σ’ αγαπώ",
+      "אהבה", "Saya cinta kamu", "Jag älskar dig", "Ndagukunda",
+      "Ek is lief vir jou", "Ngiyakuthanda", "Ana behibek",
+      "Volim te", "Miluji tě", "Mo ni fe re"
+    ];
+    const colors = ["#ff99cc", "#ff6699", "#ff66aa", "#ff85b3"];
+    let particles = [];
+
+    class Particle {
+      constructor(x, y, text, color) {
+        this.x = x;
+        this.y = y;
+        this.alpha = 1;
+        this.text = text;
+        this.color = color;
+        this.size = 16 + Math.random() * 10;
+        this.dx = (Math.random() - 0.5) * 2;
+        this.dy = (Math.random() - 0.5) * 2;
+      }
+
+      update() {
+        this.x += this.dx;
+        this.y += this.dy;
+        this.alpha -= 0.01;
+      }
+
+      draw(ctx) {
+        ctx.globalAlpha = this.alpha;
+        ctx.fillStyle = this.color;
+        ctx.font = `${this.size}px monospace`;
+        ctx.fillText(this.text, this.x, this.y);
+        ctx.globalAlpha = 1;
+      }
+
+      isVisible() {
+        return this.alpha > 0;
+      }
+    }
+
+    function spawnFirework(x, y) {
+      const word = words[Math.floor(Math.random() * words.length)];
+      const color = colors[Math.floor(Math.random() * colors.length)];
+      for (let i = 0; i < 10; i++) {
+        particles.push(new Particle(x, y, word, color));
+      }
+    }
+
+    function animate() {
+      ctx.fillStyle = "rgba(0, 0, 0, 0.2)";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      particles.forEach((p, i) => {
+        p.update();
+        p.draw(ctx);
+        if (!p.isVisible()) particles.splice(i, 1);
+      });
+
+      requestAnimationFrame(animate);
+    }
+
+    animate();
+
+    function handleInteraction(event) {
+      const x = event.clientX || (event.touches && event.touches[0].clientX);
+      const y = event.clientY || (event.touches && event.touches[0].clientY);
+      if (x && y) spawnFirework(x, y);
+    }
+
+    function startExperience() {
+      overlay.style.display = "none";
+      window.addEventListener("click", handleInteraction);
+      window.addEventListener("touchstart", handleInteraction);
+      music.play().catch(e => console.warn("Autoplay bloqueado"));
+    }
+
+    overlay.addEventListener("click", startExperience);
+    overlay.addEventListener("touchstart", startExperience);
+  </script>
+</body>
+</html>
